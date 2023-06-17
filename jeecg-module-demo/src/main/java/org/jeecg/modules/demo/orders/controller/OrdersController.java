@@ -82,7 +82,6 @@ public class OrdersController extends JeecgController<Orders, IOrdersService> {
 	 */
 	@AutoLog(value = "orders-添加")
 	@ApiOperation(value="orders-添加", notes="orders-添加")
-	@RequiresPermissions("orders:orders:add")
 	@PostMapping(value = "/add")
 	public Result<String> add(@RequestBody Orders orders) {
 		ordersService.save(orders);

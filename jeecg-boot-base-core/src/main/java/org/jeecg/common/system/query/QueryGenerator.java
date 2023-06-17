@@ -486,6 +486,10 @@ public class QueryGenerator {
 		if(rule == null && val.indexOf(QUERY_COMMA_ESCAPE)>0){
 			rule = QueryRuleEnum.EQ_WITH_ADD;
 		}
+		// step 6 xx+xx+xx 这种情况适用于如果想要用逗号作精确查询 但是系统默认逗号走in 所以可以用++替换【此逻辑作废】
+		if(rule == null && val.indexOf(QUERY_COMMA_ESCAPE)>0){
+			rule = QueryRuleEnum.NOT_EMPTY;
+		}
 
 		//update-begin--Author:taoyan  Date:20201229 for：initQueryWrapper组装sql查询条件错误 #284---------------------
 		//特殊处理：Oracle的表达式to_date('xxx','yyyy-MM-dd')含有逗号，会被识别为in查询，转为等于查询
