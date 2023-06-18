@@ -9,8 +9,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.util.Md5Util;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.demo.orders.entity.Orders;
 import org.jeecg.modules.demo.orders.entity.Users;
@@ -84,6 +87,63 @@ public class OrdersController extends JeecgController<Orders, IOrdersService> {
 	@ApiOperation(value="orders-添加", notes="orders-添加")
 	@PostMapping(value = "/add")
 	public Result<String> add(@RequestBody Orders orders) {
+		ordersService.save(orders);
+		return Result.OK("添加成功！");
+	}
+	/**
+	 *   添加
+	 *
+	 * @param orders
+	 * @return
+	 */
+	@AutoLog(value = "orders-添加v2")
+	@ApiOperation(value="orders-添加v2", notes="orders-添加v2")
+	@GetMapping(value = "/addOrder")
+	public Result<String> addOrder( Orders orders, HttpServletRequest req) {
+		String appId = req.getParameter("appId");
+		String appSecret = req.getParameter("appSecret");
+		String timestampStr = req.getParameter("timestamp");
+		String sign = req.getParameter("sign");
+
+		if (StringUtils.isBlank(appId)){
+			log.debug("appId不能为空...........");
+			return Result.error("appId不能为空！");
+		}
+		if (StringUtils.isBlank(timestampStr)){
+			log.debug("timestamp不能为空...........");
+			return Result.error("timestamp不能为空！");
+		}
+		if (StringUtils.isBlank(appSecret)){
+			log.debug("appSecret不能为空...........");
+			return Result.error("appSecret不能为空！");
+		}
+		if (StringUtils.isBlank(sign)){
+			log.debug("sign不能为空...........");
+			return Result.error("sign不能为空！");
+		}
+		if (StringUtils.isBlank(orders.getOrderId())){
+			log.debug("订单号不能为空...........");
+			return Result.error("订单号不能为空！");
+		}
+
+		long timestamp = 0;
+		try {
+			timestamp = Long.parseLong(timestampStr);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		//1.前端传过来的时间戳与服务器当前时间戳差值大于180，则当前请求的timestamp无效
+		if (Math.abs(timestamp - System.currentTimeMillis() / 1000) > 180) {
+			log.debug("timestamp无效...........");
+			return Result.error("timestamp无效！");
+		}
+
+		String sSign = Md5Util.md5Encode(appId + appSecret + timestampStr + orders.getOrderId(), "utf-8");
+		log.debug("sSign: " + sSign);
+
+		if (!sSign.toLowerCase().equals(sign)) {
+			return Result.error("sign无效！");
+		}
 		ordersService.save(orders);
 		return Result.OK("添加成功！");
 	}

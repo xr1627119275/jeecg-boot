@@ -69,7 +69,12 @@ public class UserOrdersController extends JeecgController<UserOrders, IUserOrder
 								   HttpServletRequest req) {
 		QueryWrapper<UserOrders> queryWrapper = QueryGenerator.initQueryWrapper(userOrders, req.getParameterMap());
 		Page<UserOrders> page = new Page<UserOrders>(pageNo, pageSize);
+		System.out.println(Arrays.toString(req.getParameterMap().get("hasDesc")));
 //		queryWrapper.getExpression().add();
+		if (Arrays.toString(req.getParameterMap().get("hasDesc")).equals("[1]")) {
+			String format = "description REGEXP '.+'";
+			queryWrapper.apply(format);
+		}
 		IPage<UserOrders> pageList = userOrdersService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
